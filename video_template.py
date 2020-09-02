@@ -10,11 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import sys
 
-
-
-
 doquit = False
-
 
 # this is the mouse handling function
 def onMouse(event, x, y, flags, param):
@@ -55,7 +51,7 @@ while success and not doquit:
     outframe = frame.copy()
 
     # write the frame
-    out = (np.hstack((frame, outframe)))
+    out = np.hstack((frame, outframe))
 
     # now display the original and processed images in the windows
 
@@ -68,4 +64,3 @@ cv.destroyAllWindows()
 
 # close the file or device
 cap.release()
-out.release()
