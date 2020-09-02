@@ -10,11 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import sys
 
-
-
-
 doquit = False
-
 
 # this is the mouse handling function
 def onMouse(event, x, y, flags, param):
@@ -26,7 +22,7 @@ def onMouse(event, x, y, flags, param):
 
 # This command opens the video stream. The argument can be a filename or a number
 # If it's a number, it tries to open the corresponding video device on the system. 0 is the first one.
-cap = cv.VideoCapture(0)
+cap = cv.VideoCapture('New Zealand Decking.mp4')
 
 if cap.isOpened():
     print("Successfully opened video device or file")
@@ -47,11 +43,30 @@ success, frame = cap.read()
 # Define the codec and create VideoWriter object
 out = frame.copy()
 
+
+faceCascade = cv.CascadeClassifier()
+
+
+
+
 # now loop until the quit variable is true
 while success and not doquit:
     # first, see if a key is pressed. 1 means wait only 1 millisecond before continuing
     key = cv.waitKey(1)
-
+    
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    faces = faceCascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(30, 30),
+        flags=cv.cv.CV_HAAR_SCALE_IMAGE)
+    
+    for (x, y, w, h) in faces:
+        cv.circle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
+    
+    
+    
     outframe = frame.copy()
 
     # write the frame
