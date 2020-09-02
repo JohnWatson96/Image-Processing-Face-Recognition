@@ -42,14 +42,13 @@ success, frame = cap.read()
 
 # Define the codec and create VideoWriter object
 
-out = cv.VideoWriter('output2.avi', fourcc, framerate, (2*width,  height))
 
 # now loop until the quit variable is true
 while success and not doquit:
     # first, see if a key is pressed. 1 means wait only 1 millisecond before continuing
     key = cv.waitKey(1)
 
-    outframe = frame.copy()
+    out, outframe = frame.copy()
 
     # write the frame
     out.write(np.hstack((frame, outframe)))
