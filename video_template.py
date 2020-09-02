@@ -12,7 +12,7 @@ import sys
 
 
 
-filename = 'Office Space.mp4'
+
 doquit = False
 
 
