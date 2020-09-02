@@ -8,6 +8,7 @@ Video processing Lab
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
+import sys
 
 filename = 'Office Space.mp4'
 
@@ -28,7 +29,7 @@ if cap.isOpened():
     print("Successfully opened video device or file")
 else:
     print("Cannot open video device")
-    quit()
+    sys.exit()
 
 # create a few windows to display the videos
 cv.namedWindow('Video')
