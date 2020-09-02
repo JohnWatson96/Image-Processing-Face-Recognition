@@ -8,8 +8,12 @@ Video processing Lab
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
+import sys
 
-filename = 'Office Space.mp4'
+
+
+
+doquit = False
 
 
 # this is the mouse handling function
@@ -28,7 +32,7 @@ if cap.isOpened():
     print("Successfully opened video device or file")
 else:
     print("Cannot open video device")
-    quit()
+    sys.exit()
 
 # create a few windows to display the videos
 cv.namedWindow('Video')
@@ -41,17 +45,17 @@ cv.setMouseCallback('Video', onMouse)
 success, frame = cap.read()
 
 # Define the codec and create VideoWriter object
-
+out = frame.copy()
 
 # now loop until the quit variable is true
 while success and not doquit:
     # first, see if a key is pressed. 1 means wait only 1 millisecond before continuing
     key = cv.waitKey(1)
 
-    out, outframe = frame.copy()
+    outframe = frame.copy()
 
     # write the frame
-    out.write(np.hstack((frame, outframe)))
+    out = (np.hstack((frame, outframe)))
 
     # now display the original and processed images in the windows
 
