@@ -144,7 +144,7 @@ while success and not doquit:
     if mode == 0:
         r = np.array(range(0, 256))
         rmax = np.max(frame) + contrast
-        rmin = np.min(frame[np.nonzero(frame)]) - contrast
+        rmin = np.min(np.nonzero(frame)) - contrast
         r = (((r + brightness - rmin) * 255 / (rmax - rmin) / 255) ** gamma) * 255
         lut = np.uint8(np.clip(r, 0, 255))
         outframe = cv.LUT(outframe, lut)
