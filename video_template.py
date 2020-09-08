@@ -148,6 +148,20 @@ while True:
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
+# Face Swapper
+# Emotion
+# Spiffy UI
+# Lip reading (detect if talking)
+# Road to deepfakes
+#
+# Gaze detection
+# Heart beat
+# Lie Detection (goodluck) :P
+# Poker bot 9000
+# etc...
+# Lip reading (detect if talking)
+#
+
 # once the user presses q or clicks mouse and doquit is True, destroy windows and quit
 cv.destroyAllWindows()
 

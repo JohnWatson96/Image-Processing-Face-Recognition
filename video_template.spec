@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['video_template.py'],
-             pathex=['C:\\Users\\JohnD\\Desktop\\Image Processing Project'],
+             pathex=['C:\\Users\\JohnD\\Desktop\\Image-Processing-Face-Recognition'],
              binaries=[],
              datas=[],
              hiddenimports=[],
