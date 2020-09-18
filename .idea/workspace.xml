@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ce382817-a0f3-4387-b473-19fcf5f6a0b0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib-19.21.0-cp38-cp38-win_amd64.whl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/video_template.py" beforeDir="false" afterPath="$PROJECT_DIR$/video_template.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

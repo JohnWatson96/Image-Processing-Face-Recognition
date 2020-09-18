@@ -28,7 +28,7 @@ while True:
     dets = detector(rgb_frame)
     for det in dets:
         cv2.rectangle(frame, (det.left(), det.top()), (det.right(), det.bottom()), color_green, line_width)
-    cv2.imshow('my webcam', img)
+    cv2.imshow('my webcam', frame)
     if cv2.waitKey(1) == 27:
         break  # esc to quit
 cv2.destroyAllWindows()
