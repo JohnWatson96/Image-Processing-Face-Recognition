@@ -1,86 +1,107 @@
 # -*- coding: utf-8 -*-
 """
-Video processing Lab
+Face recognition project
 
-@author: John Watson using template by Andrew Busch
+@author: John Watson and Damen Kelly
 """
 
-import cv2 as cv
-import numpy as np
-from matplotlib import pyplot as plt
-import sys
-
-doquit = False
-
-# this is the mouse handling function
-def onMouse(event, x, y, flags, param):
-    global doquit
-    if event == cv.EVENT_LBUTTONUP:
-        # if mouse button is pressed, just set the quit flag to True
-        doquit = True
+import dlib
+import cv2
+from PyQt5.QtWidgets import QApplication, QMainWindow, \
+    QPushButton, QVBoxLayout, QWidget
 
 
-# This command opens the video stream. The argument can be a filename or a number
-# If it's a number, it tries to open the corresponding video device on the system. 0 is the first one.
-cap = cv.VideoCapture('New Zealand Decking.mp4')
+#GUI
 
-if cap.isOpened():
-    print("Successfully opened video device or file")
-else:
-    print("Cannot open video device")
-    sys.exit()
-
-# create a few windows to display the videos
-cv.namedWindow('Video')
-
-# any mouse click in EITHER window will use the callback above
-cv.setMouseCallback('Video', onMouse)
-
-# Now try to read a single frame from the source. It returns two results, one a boolean to see if it worked,
-# the other the frame (a numpy array with the image)
-success, frame = cap.read()
-
-# Define the codec and create VideoWriter object
-out = frame.copy()
+class StreamWindow(QMainWindow):
+  def initilise(self):
+      self.setWindowTitle("Facial Recognition Project")
+      self.initiliseUI()
 
 
-faceCascade = cv.CascadeClassifier()
-
-
-
-
-# now loop until the quit variable is true
-while success and not doquit:
-    # first, see if a key is pressed. 1 means wait only 1 millisecond before continuing
-    key = cv.waitKey(1)
     
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    faces = faceCascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-        flags=cv.cv.CV_HAAR_SCALE_IMAGE)
-    
-    for (x, y, w, h) in faces:
-        cv.circle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-    
-    
-    
-    outframe = frame.copy()
+  def Button1_pressed():  
+      print('Option A')
+      
+  def Button2_pressed():  
+      print('Option B')
+      
+  def Button3_pressed():  
+      print('Option C')    
+      
+      
+  def initiliseUI(self):
+      self.Button1 = QPushButton('Option A', dock_widget)
+      self.Button2 = QPushButton('Option B', dock_widget)
+      self.Button3 = QPushButton('Option C', dock_widget)
+      self.Button1.clicked.connect(self.Button1_pressed)
+      self.Button2.clicked.connect(self.Button2_pressed)
+      self.Button3.clicked.connect(self.Button2_pressed)
 
-    # write the frame
-    out = (np.hstack((frame, outframe)))
 
-    # now display the original and processed images in the windows
 
-    cv.imshow('Video', np.hstack((frame, outframe)))
-    # and read the next frame (or try to)
-    success, frame = cap.read()
+app = QApplication([]) 
+stream = StreamWindow()
+dock_widget = QWidget()
 
-# once the user presses q or clicks mouse and doquit is True, destroy windows and quit
-cv.destroyAllWindows()
 
-# close the file or device
-cap.release()
-out.release()
+
+
+layout = QVBoxLayout(dock_widget)
+layout.addWidget(Button1)
+layout.addWidget(Button2)
+layout.addWidget(Button3)
+
+stream.setCentralWidget(dock_widget)
+stream.show()
+
+
+
+
+detector = dlib.get_frontal_face_detector()
+sp = dlib.shape_predictor("../dlib-models/shape_predictor_68_face_landmarks.dat")
+facerec = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognition_resnet_model_v1.dat")
+
+img = dlib.load_rgb_image("John.jpg")
+dets = detector(img, 1)
+for d in dets:
+    shape = sp(img, d)
+    face_descriptor = facerec.compute_face_descriptor(img, shape)
+
+cam = cv2.VideoCapture(0)
+color_green = (0, 255, 0)
+line_width = 3
+
+while True:
+    ret_val, frame = cam.read()
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    dets = detector(rgb_frame)
+    for det in dets:
+        cv2.rectangle(frame, (det.left(), det.top()), (det.right(), det.bottom()), color_green, line_width)
+    cv2.imshow('my webcam', img)
+    if cv2.waitKey(1) == 27:
+        app.exit(app.exec_())
+
+
+app.exit(app.exec_())
+cam.release()
+cv2.destroyAllWindows()
+# PROJECT SCOPE
+# Open webcam and UI, Button for learn and swap face to
+# mode to do emotions
+# mode to open mouth
+# mode for gaze detection look and blink input into UI
+
+# Face Swapper
+# Emotion
+# Spiffy UI
+# Lip reading (detect if talking)
+# Road to deepfakes
+#
+# Gaze detection
+# Heart beat
+# Lie Detection (goodluck) :P
+# Poker bot 9000
+# etc...
+# Lip reading (detect if talking)
+#
