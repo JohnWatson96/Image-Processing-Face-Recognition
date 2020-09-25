@@ -5,28 +5,38 @@ Face recognition project
 @author: John Watson and Damen Kelly
 """
 
-import dlib
 import cv2
+import numpy as np
+import face_functions as face
 
-detector = dlib.get_frontal_face_detector()
-sp = dlib.shape_predictor("../dlib-models/shape_predictor_68_face_landmarks.dat")
-facerec = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognition_resnet_model_v1.dat")
+img = cv2.imread("John.jpg")
+img2 = cv2.imread("Damen.jpg")
 
-img = dlib.load_rgb_image("John.jpg")
-dets = detector(img, 1)
-for d in dets:
-    shape = sp(img, d)
-    face_descriptor = facerec.compute_face_descriptor(img, shape)
+img = cv2.resize(img, (int(img.shape[1]/4), int(img.shape[0]/4)))
+
+#person = face.recognise(img)
+#person2 = face.recognise(img2)
 
 cam = cv2.VideoCapture(0)
 color_green = (0, 255, 0)
 line_width = 3
 
-while True:
+img2 = cv2.resize(img2, (img.shape[1], img.shape[0]))
+img3 = face.swap(img, img2)
+
+out = np.hstack((img, img2, img3))
+cv2.imshow("out", out)
+cv2.waitKey(0)
+
+while False:
     ret_val, frame = cam.read()
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    dets = detector(rgb_frame)
+
+
+
+    dets = face.find(rgb_frame)
     for det in dets:
+        #face.swap(img, img2, (det.left(), det.top()), (det.right(), det.bottom()))
         cv2.rectangle(frame, (det.left(), det.top()), (det.right(), det.bottom()), color_green, line_width)
     cv2.imshow('my webcam', frame)
     if cv2.waitKey(1) == 27:
