@@ -21,7 +21,7 @@ class Thread(QThread):
     changePixmap = pyqtSignal(QImage)
 
     def run(self):
-        cap = cv2.VideoCapture('New Zealand Decking.mp4')
+        cap = cv2.VideoCapture(0)
         while True:
             ret, frame = cap.read()
             if ret:
