@@ -13,6 +13,7 @@ src_img = cv2.imread("John.jpg")
 input_img = cv2.imread("Damen.jpg")
 
 src_img = cv2.resize(src_img, (int(src_img.shape[1]/4), int(src_img.shape[0]/4)))
+input_img = cv2.resize(input_img, (int(input_img.shape[1]/4), int(input_img.shape[0]/4)))
 
 cv2.imshow("src_img", src_img)
 cv2.imshow("input_img", input_img)
@@ -25,10 +26,11 @@ cam = cv2.VideoCapture(0)
 input_points, input_bbox = face.find(input_img)
 
 out_img = face.swap(src_img, input_img, input_points, input_bbox)
+out_img = face.draw(out_img)
 cv2.imshow("out_img", out_img)
 cv2.waitKey(0)
 
-while False:
+while True:
     ret_val, frame = cam.read()
 
     #frame = face.swap(frame, input_img, input_points, input_bbox)
