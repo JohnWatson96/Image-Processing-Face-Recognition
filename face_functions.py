@@ -101,6 +101,9 @@ def swap(src_img, input_img, input_points, input_bbox):
         print("No face to swap")
         return src_img
 
+    input_points = input_points[:48]
+    src_points = src_points[:48]
+
     result_img = src_img.copy()  # create destination face
     input_delaunay = Delaunay(input_points)
     triangle_affines = np.array(list(get_affine_transform(input_delaunay.simplices, input_points, src_points)))
@@ -127,7 +130,7 @@ def swap(src_img, input_img, input_points, input_bbox):
         out_coords = np.dot(triangle_affines[simplex_index],
                             np.vstack((coords.T, np.ones(num_coords))))
         x, y = coords.T
-        result_img[y, x] = bilinear_interpolate(src_img, out_coords)
+        result_img[y, x] = bilinear_interpolate(input_img, out_coords)
 
     cv2.imshow("result_img", result_img)
 
