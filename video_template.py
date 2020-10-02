@@ -7,56 +7,6 @@ Face recognition project
 
 import dlib
 import cv2
-from PyQt5.QtWidgets import QApplication, QMainWindow, \
-    QPushButton, QVBoxLayout, QWidget
-
-
-#GUI
-
-class StreamWindow(QMainWindow):
-  def initilise(self):
-      self.setWindowTitle("Facial Recognition Project")
-      self.initiliseUI()
-
-
-    
-  def Button1_pressed():  
-      print('Option A')
-      
-  def Button2_pressed():  
-      print('Option B')
-      
-  def Button3_pressed():  
-      print('Option C')    
-      
-      
-  def initiliseUI(self):
-      self.Button1 = QPushButton('Option A', dock_widget)
-      self.Button2 = QPushButton('Option B', dock_widget)
-      self.Button3 = QPushButton('Option C', dock_widget)
-      self.Button1.clicked.connect(self.Button1_pressed)
-      self.Button2.clicked.connect(self.Button2_pressed)
-      self.Button3.clicked.connect(self.Button2_pressed)
-
-
-
-app = QApplication([]) 
-stream = StreamWindow()
-dock_widget = QWidget()
-
-
-
-
-layout = QVBoxLayout(dock_widget)
-layout.addWidget(Button1)
-layout.addWidget(Button2)
-layout.addWidget(Button3)
-
-stream.setCentralWidget(dock_widget)
-stream.show()
-
-
-
 
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor("../dlib-models/shape_predictor_68_face_landmarks.dat")
