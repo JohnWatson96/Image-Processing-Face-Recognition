@@ -14,15 +14,19 @@ Video = False
 src_img = cv2.imread("John.jpg")
 input_img = cv2.imread("Damen.jpg")
 
-#person = face.recognise(img)
-#person2 = face.recognise(img2)
-
 cam = cv2.VideoCapture(0)
 
-input_points, input_bbox = face.find(input_img)
+input_points, input_bbox, input_shape = face.find(input_img)
+
+# input_descriptor = face.recognise(input_img, input_shape)  # WIP
+# input_descriptors = [input_descriptor, input_descriptor]  # WIP
 
 if not Video:
-    src_points, src_bbox = face.find(src_img)
+    src_points, src_bbox, src_shape = face.find(src_img)
+
+    # input_descriptor = face.recognise(src_img, src_shape)  # WIP
+    # face.match(src_descriptor, input_descriptor)  # WIP
+
     out_img = face.swap(src_img, src_points, src_bbox, input_img, input_points, input_bbox)
 
     src_img = face.draw(src_img)
@@ -36,7 +40,7 @@ if not Video:
 else:
     while True:
         ret_val, frame = cam.read()
-        frame_points, frame_bbox = face.find(frame)
+        frame_points, frame_bbox, _ = face.find(frame)
         frame = face.swap(frame, frame_points, frame_bbox, input_img, input_points, input_bbox)
 
         #frame = face.draw(frame)
