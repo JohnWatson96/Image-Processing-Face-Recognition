@@ -6,10 +6,9 @@ Created on Tue Sep 29 09:24:29 2020
 """
 
 import cv2
-import sys
-from PyQt5.QtWidgets import (QApplication, QMainWindow,QDockWidget,
-                            QPushButton, QVBoxLayout, QWidget, QGridLayout
-                            ,QLabel)
+from PyQt5.QtWidgets import (QApplication, QMainWindow,
+                            QPushButton,  QWidget,
+                            QGridLayout, QLabel)
 from PyQt5.QtGui import QPixmap,QImage
 from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 
@@ -108,9 +107,6 @@ app = QApplication([])
 
 #Main window
 window = AppWindow()
-
-
-
 
 # close the file or device
 
