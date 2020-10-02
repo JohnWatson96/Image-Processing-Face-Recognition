@@ -16,7 +16,6 @@ recogniser = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognitio
 
 
 def find(img):
-
     detections = detector(img)  # detect faces and store rectangles
     if len(detections) == 0:
         print("No face detected")
@@ -26,31 +25,31 @@ def find(img):
     bbox = [[min(points[:, 0]), min(points[:, 1])], [max(points[:, 0]), min(points[:, 1])],
             [min(points[:, 0]), max(points[:, 1])], [max(points[:, 0]), max(points[:, 1])]]
 
-    r = 10
-    img_w, img_h = img.shape[:2]
-    left, top = np.min(points, 0)
-    right, bottom = np.max(points, 0)
+    '''
+    2   3
+    0   1
+    '''
 
-    x, y = max(0, left - r), max(0, top - r)
-    w, h = min(right + r, img_h) - x, min(bottom + r, img_w) - y
-
-    return points - np.asarray([[x, y]]), (x, y, w, h), img[y:y + h, x:x + w], bbox
+    return points, bbox
 
 
-def recognise(img):
-    pos, shape = find(img)
-    descriptor = recogniser.compute_face_descriptor(img, shape)
-    return descriptor
+def swap(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
+    src_points, src_bbox = find(src_img)
+    if src_points is None or src_bbox is None:  # no face detected
+        print("No face to swap")
+        return src_img
+
+    result_img = warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox)
+
+    return result_img
 
 
 def draw(img):  # draws facial points, Delaunay triangles and bounding box
 
-    points, _, img, bbox = find(img)
+    points, bbox = find(img)
 
     if points is None or bbox is None:
         return img
-
-    triangles = Delaunay(points)
 
     cv2.line(img, tuple(bbox[0]), tuple(bbox[1]), (0, 0, 255), 2)
     cv2.line(img, tuple(bbox[0]), tuple(bbox[2]), (0, 0, 255), 2)
@@ -60,6 +59,8 @@ def draw(img):  # draws facial points, Delaunay triangles and bounding box
     for point in points:
         cv2.circle(img, (point[0], point[1]), 2, (0, 255, 0), -1)
 
+    triangles = Delaunay(points)
+
     for triangle in points[triangles.simplices]:
         cv2.line(img, tuple(triangle[0]), tuple(triangle[1]), (255, 255, 255), 1)
         cv2.line(img, tuple(triangle[1]), tuple(triangle[2]), (255, 255, 255), 1)
@@ -68,72 +69,59 @@ def draw(img):  # draws facial points, Delaunay triangles and bounding box
     return img
 
 
-def get_affine_transform(input_simplices, input_points, src_points):
+def recognise(img):
+    pos, shape = find(img)
+    descriptor = recogniser.compute_face_descriptor(img, shape)
+    return descriptor
 
-    ones = [1, 1, 1]
-    for triangle in input_simplices:
-        input_triangle = np.vstack((input_points[triangle, :].T, ones))
-        src_triangle = np.vstack((src_points[triangle, :].T, ones))
-        mat = np.dot(input_triangle, np.linalg.inv(src_triangle))[:2, :]  # dot product and inverse
+
+def warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
+    result_img = draw(src_img.copy())  # create image to warp to
+    src_delaunay = Delaunay(src_points)  # create Delaunay triangles to warp to
+
+    triangle_affines = np.array(list(get_affine_transform(src_delaunay.simplices, input_points, src_points)))
+    # create transform matrices to warp input points to source triangles
+
+    src_bbox_points = np.array([(x, y) for x in range(src_bbox[0][0], src_bbox[3][0] + 1)
+                                for y in range(src_bbox[0][1], src_bbox[3][1] + 1)])
+    # create an array of all coordinates in source face area
+
+    src_indicies = src_delaunay.find_simplex(src_bbox_points)  # returns triangle index for each point, -1 for none
+
+    for triangle_index in range(len(src_delaunay.simplices)):  # for each triangle
+        triangle_points = src_bbox_points[src_indicies == triangle_index]  # for the points in the triangle
+        num_points = len(triangle_points)  # get the number of points
+        out_points = np.dot(triangle_affines[triangle_index], np.vstack((triangle_points.T, np.ones(num_points))))
+        # perform affine transform T = M.[x,y,1]^T to create triangles of source in the input
+
+        x, y = triangle_points.T  # transpose [[x1,y1], [x2,y2], ...] to [x1, x2, ...], [y1, y2, ...]
+        result_img[y, x] = bilinear_interpolate(input_img, out_points)  # interpolate between input and source
+        cv2.imshow("result_img", result_img)
+        cv2.waitKey(100)
+
+    return result_img
+
+
+def get_affine_transform(input_simplices, input_points, src_points):
+    for triangle in input_simplices:  # for each triangle
+        src_triangle = np.float32(src_points[triangle])
+        input_triangle = np.float32(input_points[triangle])
+        mat = cv2.getAffineTransform(src_triangle, input_triangle)  # get the transform matrix
         yield mat
 
 
-def bilinear_interpolate(img, coords):
-    int_coords = np.int32(coords)
-    x0, y0 = int_coords
-    dx, dy = coords - int_coords
+def bilinear_interpolate(img, points):
+    int_points = np.int32(points)
+    x0, y0 = int_points
+    dx, dy = points - int_points
 
-    # 4 Neighour pixels
-    q11 = img[y0, x0]
+    q11 = img[y0, x0]  # 4 Neighbour pixels
     q21 = img[y0, x0 + 1]
     q12 = img[y0 + 1, x0]
     q22 = img[y0 + 1, x0 + 1]
 
-    btm = q21.T * dx + q11.T * (1 - dx)
+    bottom = q21.T * dx + q11.T * (1 - dx)
     top = q22.T * dx + q12.T * (1 - dx)
-    inter_pixel = top * dy + btm * (1 - dy)
+    inter_pixel = top * dy + bottom * (1 - dy)
 
     return inter_pixel.T
-
-
-def swap(src_img, input_img, input_points, input_bbox):
-
-    src_points, src_shape, src_img, src_bbox = find(src_img)
-
-    if src_points is None or src_bbox is None:  # no face detected
-        print("No face to swap")
-        return src_img
-
-    input_points = input_points[:48]
-    src_points = src_points[:48]
-
-    rows, cols = src_img.shape[:2][:2]
-    result_img = np.zeros((rows, cols, 3), np.uint8)
-
-    cv2.imshow("src_img", src_img)
-    cv2.imshow("input_img", input_img)
-    cv2.imshow("result_img", result_img)
-    cv2.waitKey(0)
-
-    src_delaunay = Delaunay(src_points)
-    triangle_affines = np.array(list(get_affine_transform(src_delaunay.simplices, input_points, src_points)))
-
-    xmin = np.min(src_points[:, 0])
-    xmax = np.max(src_points[:, 0]) + 1
-    ymin = np.min(src_points[:, 1])
-    ymax = np.max(src_points[:, 1]) + 1
-
-    roi_coords = np.asarray([(x, y) for y in range(ymin, ymax)
-                            for x in range(xmin, xmax)], np.uint32)
-
-    roi_tri_indices = src_delaunay.find_simplex(roi_coords)
-
-    for simplex_index in range(len(src_delaunay.simplices)):
-        coords = roi_coords[roi_tri_indices == simplex_index]
-        num_coords = len(coords)
-        out_coords = np.dot(triangle_affines[simplex_index],
-                            np.vstack((coords.T, np.ones(num_coords))))
-        x, y = coords.T
-        result_img[y, x] = bilinear_interpolate(input_img, out_coords)
-
-    return result_img
