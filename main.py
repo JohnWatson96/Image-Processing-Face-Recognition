@@ -17,8 +17,15 @@ from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 
 Video = True
 Exit_flag = False
+
+Option_A = cv2.imread("Damen.jpg")
+Option_B = cv2.imread("John.jpg")
+Option_C = cv2.imread("Andrew.jpg")
+
 src_img = cv2.imread("John.jpg") 
-input_img = cv2.imread("Damen.jpg")
+input_img = [Option_A,Option_B,Option_C]
+Cycle = 1
+
 
 # -----------Video Capture--------------------#
 class Thread(QThread):
@@ -36,7 +43,7 @@ class Thread(QThread):
                 p = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
                 self.changePixmapIn.emit(p)
             frame_points, frame_bbox, _ = face.find(frame)
-            frame = face.swap(frame, frame_points, frame_bbox, input_img, input_points, input_bbox)
+            frame = face.swap(frame, frame_points, frame_bbox, input_img[Cycle], input_points, input_bbox)
             #frame = face.draw(frame)
             if ret:
                 rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -56,7 +63,10 @@ class AppWindow(QMainWindow):
         print("A")
 
     def Button2_pressed(self):
-        print("B")
+        global Cycle
+        Cycle = Cycle + 1
+        if Cycle == 3:
+            Cycle = 0
 
     def Button3_pressed(self):
         print("C")
@@ -130,9 +140,9 @@ class AppWindow(QMainWindow):
         else:
             event.ignore()
 
-input_points, input_bbox, input_shape = face.find(input_img)
+input_points, input_bbox, input_shape = face.find(input_img[Cycle])
 
-input_descriptor = face.recognise(input_img, input_shape)  # WIP
+input_descriptor = face.recognise(input_img[Cycle], input_shape)  # WIP
 input_descriptors = [input_descriptor, input_descriptor]  # WIP
 
 
