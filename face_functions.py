@@ -69,8 +69,6 @@ def get_affine_transform(input_simplices, input_points, src_points):
     for triangle in input_simplices:
         input_triangle = np.vstack((input_points[triangle].T, ones))
         src_triangle = np.vstack((src_points[triangle].T, ones))
-        print("input_triangle", input_triangle)
-        print("src_triangle", src_triangle)
         mat = np.dot(input_triangle, np.linalg.inv(src_triangle))[:2]  # dot product and inverse
         yield mat
 
@@ -108,8 +106,6 @@ def swap(src_img, input_img, input_points, input_bbox):
     input_delaunay = Delaunay(input_points)
     triangle_affines = np.array(list(get_affine_transform(input_delaunay.simplices, input_points, src_points)))
 
-    print("triangle_affines", triangle_affines)
-
     xmin = np.min(src_points[:, 0])
     xmax = np.max(src_points[:, 0]) + 1
     ymin = np.min(src_points[:, 1])
@@ -118,11 +114,7 @@ def swap(src_img, input_img, input_points, input_bbox):
     roi_coords = np.asarray([(x, y) for y in range(ymin, ymax)
                             for x in range(xmin, xmax)], np.uint32)
 
-    print("roi_coords", roi_coords)
-
     roi_tri_indices = input_delaunay.find_simplex(roi_coords)
-
-    print("roi_tri_indices", roi_tri_indices)
 
     for simplex_index in range(len(input_delaunay.simplices)):
         coords = roi_coords[roi_tri_indices == simplex_index]
@@ -135,35 +127,3 @@ def swap(src_img, input_img, input_points, input_bbox):
     cv2.imshow("result_img", result_img)
 
     return result_img
-'''    input_img = input_img[input_bbox[0][1]:input_bbox[3][1], input_bbox[0][0]:input_bbox[3][0]]  # crop using slicing
-    result_img = cv2.resize(result_img, (src_bbox[3][0] - src_bbox[0][0],
-                                       src_bbox[3][1] - src_bbox[0][1]))  # size to source
-    result_img[src_bbox[0][1]:src_bbox[3][1], src_bbox[0][0]:src_bbox[3][0]] = input_img  # paste'''
-
-# old triangle finding function that uses cv2's subdivision
-def old_draw(img):
-
-    points, bbox = find(img)
-    sub_div = cv2.Subdiv2D((bbox[0][0], bbox[0][1], bbox[3][0], bbox[3][1]))
-
-    cv2.line(img, tuple(bbox[0]), tuple(bbox[1]), (0, 0, 255), 2)
-    cv2.line(img, tuple(bbox[0]), tuple(bbox[2]), (0, 0, 255), 2)
-    cv2.line(img, tuple(bbox[2]), tuple(bbox[3]), (0, 0, 255), 2)
-    cv2.line(img, tuple(bbox[1]), tuple(bbox[3]), (0, 0, 255), 2)
-
-    for point in points:
-        cv2.circle(img, (point[0], point[1]), 2, (0, 255, 0), -1)
-        sub_div.insert((point[0], point[1]))
-
-    triangles = sub_div.getTriangleList()
-
-    for triangle in triangles:
-        point1 = (triangle[0], triangle[1])
-        point2 = (triangle[2], triangle[3])
-        point3 = (triangle[4], triangle[5])
-
-        cv2.line(img, point1, point2, (255, 255, 255), 1)
-        cv2.line(img, point2, point3, (255, 255, 255), 1)
-        cv2.line(img, point3, point1, (255, 255, 255), 1)
-
-    return img

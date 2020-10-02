@@ -9,6 +9,8 @@ import cv2
 import numpy as np
 import face_functions as face
 
+# 640x480
+
 src_img = cv2.imread("John.jpg")
 input_img = cv2.imread("Damen.jpg")
 
