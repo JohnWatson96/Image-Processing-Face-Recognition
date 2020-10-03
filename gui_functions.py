@@ -6,43 +6,102 @@ gui defines using PyQt5
 """
 
 import cv2
+import numpy as np
+import face_functions as face
 from PyQt5.QtWidgets import (QApplication, QMainWindow,
                              QPushButton, QWidget,
                              QGridLayout, QLabel)
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 
+#globals
+recognise = False
+swap = False
+store = False
 
-# -----------Video Capture--------------------#
+#initialisation
+input_imgs = [cv2.imread("John.jpg"), cv2.imread("Damen.jpg"), cv2.imread("Laura.jpg"), cv2.imread("Andrew.jpg")]
+
+input_pointses = np.zeros((len(input_imgs), 68, 2), dtype=np.uint32)
+input_bboxs = np.zeros((len(input_imgs), 4, 2), dtype=np.uint32)
+input_shapes = []
+
+for index in range(0, len(input_imgs)):
+    input_points, input_bbox, input_shape = face.find(input_imgs[index])
+    input_pointses[index] = input_points
+    input_bboxs[index] = input_bbox
+    input_shapes.append(input_shape)
+
+#input_descriptor = face.recognise(input_img, input_shape)  # WIP
+#input_descriptors = [input_descriptor, input_descriptor]  # WIP
+
+
+def frame_operation(frame, input_imgs, input_pointses, input_bboxs):
+
+    global recognise
+    global swap
+    global store
+
+    input_index = 1  # change this for different people
+    input_img, input_points, input_bbox = input_imgs[input_index], input_pointses[input_index], input_bboxs[input_index]
+    if recognise:
+        print("you are")
+        recognise = False
+    if swap:
+        frame_points, frame_bbox, _ = face.find(frame)
+        frame = face.swap(frame, frame_points, frame_bbox, input_img, input_points, input_bbox)
+    if store:
+        print("store")
+        store = False
+    return frame
+
 
 class Thread(QThread):
-    changePixmap = pyqtSignal(QImage)
+    changePixmapIn = pyqtSignal(QImage, name='In')
+    changePixmapOut = pyqtSignal(QImage, name='Out')
 
     def run(self):
-        cap = cv2.VideoCapture('New Zealand Decking.mp4')
+        cam = cv2.VideoCapture(0)
         while True:
-            ret, frame = cap.read()
+
+            ret, frame = cam.read()
+
             if ret:
                 rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 h, w, ch = rgbImage.shape
                 bytesPerLine = ch * w
                 convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
                 p = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
-                self.changePixmap.emit(p)
+                self.changePixmapIn.emit(p)
 
+            frame = frame_operation(frame, input_imgs, input_pointses, input_bboxs)
+
+            if ret:
+                rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                h, w, ch = rgbImage.shape
+                bytesPerLine = ch * w
+                convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
+                p = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
+                self.changePixmapOut.emit(p)
+
+
+# -----------Video Capture--------------------#
 
 # GUI
 class AppWindow(QMainWindow):
 
     # Define Button Presses
     def Button1_pressed(self):
-        print("A")
+        global recognise
+        recognise = True
 
     def Button2_pressed(self):
-        print("B")
+        global swap
+        swap = ~swap
 
     def Button3_pressed(self):
-        print("C")
+        global store
+        store = True
 
         # Initilize main window
 
@@ -88,30 +147,18 @@ class AppWindow(QMainWindow):
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
         th = Thread(self)
-        th.changePixmap.connect(self.setImage)
+        th.changePixmapIn.connect(self.setImageIn)
+        th.changePixmapOut.connect(self.setImageOut)
         th.start()
 
     # Image Update
-    @pyqtSlot(QImage)
-    def setImage(self, image):
+    @pyqtSlot(QImage, name='In')
+    def setImageIn(self, image):
         # Input image
         self.labelIn.setPixmap(QPixmap.fromImage(image))
 
+    @pyqtSlot(QImage, name='Out')
+    def setImageOut(self, frame):
         # Output image
-        self.labelOut.setPixmap(QPixmap.fromImage(image))
-
-    # Create Application
-
-
-app = QApplication([])
-
-# Main window
-window = AppWindow()
-
-# close the file or device
-
-
-# Display
-window.show()
-app.exec_()
+        self.labelOut.setPixmap(QPixmap.fromImage(frame))
 

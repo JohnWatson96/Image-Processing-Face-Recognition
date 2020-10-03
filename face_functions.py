@@ -16,12 +16,11 @@ recogniser = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognitio
 
 
 def match(src_descriptor, descriptors):
-    print(np.linalg.norm(descriptors - src_descriptor, axis=1))
-    return
+    return np.linalg.norm(descriptors - src_descriptor, axis=1) <= 0.6
 
 
 def recognise(img, shape):
-    descriptor = recogniser.compute_face_descriptor(img, shape)
+    descriptor = np.array(recogniser.compute_face_descriptor(img, shape))
     return descriptor
 
 
