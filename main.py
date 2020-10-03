@@ -162,7 +162,7 @@ window = AppWindow()
 window.show()
 app.exec_()
 
-
+sys.exit()
         
 
 # if not Video:
