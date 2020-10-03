@@ -29,13 +29,13 @@ def recognise(img, shape):
     return descriptor
 
 
-def swap(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
-    src_points, src_bbox, _ = find(src_img)
+def swap(src_img, src_points, src_bbox, input_img, input_points):
+
     if src_points is None or src_bbox is None:  # no face detected
         print("No face to swap")
         return src_img
 
-    result_img = warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox)
+    result_img = warp(src_img, src_points, src_bbox, input_img, input_points)
 
     ###COPY PASTED###
     ## Mask for blending
@@ -126,8 +126,8 @@ def find(img):
     return points, bbox, shape
 
 
-def warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
-    result_img = draw(src_img.copy())  # create image to warp to
+def warp(src_img, src_points, src_bbox, input_img, input_points):
+    result_img = np.zeros(src_img.shape, dtype=src_img.dtype)
     src_delaunay = Delaunay(src_points)  # create Delaunay triangles to warp to
 
     triangle_affines = np.array(list(get_affine_transform(src_delaunay.simplices, input_points, src_points)))
@@ -139,6 +139,20 @@ def warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
 
     src_indicies = src_delaunay.find_simplex(src_bbox_points)  # returns triangle index for each point, -1 for none
 
+    lefteye_points = src_points[36:41]
+    lefteye_Delaunay = Delaunay(lefteye_points)
+    lefteye_indicies = lefteye_Delaunay.find_simplex(src_bbox_points)
+    righteye_points = src_points[42:47]
+    righteye_Delaunay = Delaunay(righteye_points)
+    righteye_indicies = righteye_Delaunay.find_simplex(src_bbox_points)
+    mouth_points = src_points[60:67]
+    mouth_Delaunay = Delaunay(mouth_points)
+    mouth_indicies = mouth_Delaunay.find_simplex(src_bbox_points)
+
+    for index in range(len(src_indicies)):
+        if (lefteye_indicies[index] != -1) or (righteye_indicies[index] != -1) or (mouth_indicies[index] != -1):
+            src_indicies[index] = -1
+
     for triangle_index in range(len(src_delaunay.simplices)):  # for each triangle
         triangle_points = src_bbox_points[src_indicies == triangle_index]  # for the points in the triangle
         num_points = len(triangle_points)  # get the number of points
@@ -147,8 +161,8 @@ def warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
 
         x, y = triangle_points.T  # transpose [[x1,y1], [x2,y2], ...] to [x1, x2, ...], [y1, y2, ...]
         result_img[y, x] = bilinear_interpolate(input_img, out_points)  # interpolate between input and source
-        # cv2.imshow("result_img", result_img)
-        # cv2.waitKey(10)  # these show the process for each section
+        #cv2.imshow("result_img", result_img)
+        #cv2.waitKey(10)  # these show the process for each section
 
     return result_img
 

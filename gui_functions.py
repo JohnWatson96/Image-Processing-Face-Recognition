@@ -57,7 +57,7 @@ def frame_operation(frame):
 
     if swap is not None:
         frame_points, frame_bbox, _ = face.find(frame)
-        frame = face.swap(frame, frame_points, frame_bbox, input_imgs[swap], input_pointses[swap], input_bboxs[swap])
+        frame = face.swap(frame, frame_points, frame_bbox, input_imgs[swap], input_pointses[swap])
 
     return frame
 
