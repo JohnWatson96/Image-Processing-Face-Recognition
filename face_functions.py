@@ -59,27 +59,28 @@ def swap(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
     return result_img
 
 
-###COPY PASTED###
 def correct_colours(im1, im2, landmarks1):
-    COLOUR_CORRECT_BLUR_FRAC = 0.75
+    COLOUR_CORRECT_BLUR_FRAC = 0.75     #Blending amount
     LEFT_EYE_POINTS = list(range(42, 48))
     RIGHT_EYE_POINTS = list(range(36, 42))
-
+    #determine kernal size
     blur_amount = COLOUR_CORRECT_BLUR_FRAC * np.linalg.norm(
                               np.mean(landmarks1[LEFT_EYE_POINTS], axis=0) -
                               np.mean(landmarks1[RIGHT_EYE_POINTS], axis=0))
     blur_amount = int(blur_amount)
+    #Ensure kernal size value is not even
     if blur_amount % 2 == 0:
         blur_amount += 1
-    im1_blur = cv2.GaussianBlur(im1, (blur_amount, blur_amount), 0)
-    im2_blur = cv2.GaussianBlur(im2, (blur_amount, blur_amount), 0)
+    # Apply blur
+    im1_blur = cv2.medianBlur(im1, blur_amount, 0)
+    im2_blur = cv2.medianBlur(im2, blur_amount, 0)
 
     # Avoid divide-by-zero errors.
-    im2_blur = im2_blur.astype(int)
-    im2_blur += 128*(im2_blur <= 1)
-
-    result = im2.astype(np.float64) * im1_blur.astype(np.float64) / im2_blur.astype(np.float64)
-    result = np.clip(result, 0, 255).astype(np.uint8)
+    im2_blur = int(im2_blur)
+    im2_blur = im2_blur + 128*(im2_blur <= 1)
+    #Blend images
+    result = np.float64(im2) * np.float64(im1_blur) / np.float64(im2_blur)
+    result = np.uint8(np.clip(result, 0, 255))
 
     return result
 ###COPY PASTED###
