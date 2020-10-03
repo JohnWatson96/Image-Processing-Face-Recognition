@@ -16,7 +16,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 
 #globals
 recognise = False
-swap = False
+swap = None
 store = False
 count = 0
 
@@ -43,8 +43,6 @@ def frame_operation(frame, input_imgs, input_pointses, input_bboxs, input_names)
     global swap
     global store
 
-    input_index = 0  # change this for different people
-    input_img, input_points, input_bbox = input_imgs[input_index], input_pointses[input_index], input_bboxs[input_index]
     if recognise:
         _, frame_bbox, frame_shape = face.find(frame)
         if frame_bbox or frame_shape is not None:
@@ -57,9 +55,9 @@ def frame_operation(frame, input_imgs, input_pointses, input_bboxs, input_names)
         else:
             cv2.putText(frame, "Not Recognised", (0, 480), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 2)
 
-    if swap:
+    if swap is not None:
         frame_points, frame_bbox, _ = face.find(frame)
-        frame = face.swap(frame, frame_points, frame_bbox, input_img, input_points, input_bbox)
+        frame = face.swap(frame, frame_points, frame_bbox, input_imgs[swap], input_pointses[swap], input_bboxs[swap])
 
     if store:
         print("store")
@@ -108,7 +106,12 @@ class AppWindow(QMainWindow):
 
     def Button2_pressed(self):
         global swap
-        swap = ~swap
+        if swap is None:
+            swap = 0
+        elif swap < len(input_imgs) - 1:
+            swap = swap + 1
+        else:
+            swap = None
 
     def Button3_pressed(self):
         global store
