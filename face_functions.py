@@ -16,12 +16,16 @@ recogniser = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognitio
 
 
 def match(src_descriptor, descriptors):
-    print(np.linalg.norm(descriptors - src_descriptor, axis=1))
-    return
+    distances = np.linalg.norm(descriptors - src_descriptor, axis=1)
+    if True in list(distances <= 0.6):
+        return np.argmin(distances)
+    else:
+        return None
+
 
 
 def recognise(img, shape):
-    descriptor = recogniser.compute_face_descriptor(img, shape)
+    descriptor = np.array(recogniser.compute_face_descriptor(img, shape))
     return descriptor
 
 
@@ -67,8 +71,8 @@ def correct_colours(im1, im2, landmarks1):
     blur_amount = int(blur_amount)
     if blur_amount % 2 == 0:
         blur_amount += 1
-    im1_blur = cv2.medianBlur(im1, blur_amount, 0)
-    im2_blur = cv2.medianBlur(im2, blur_amount, 0)
+    im1_blur = cv2.GaussianBlur(im1, (blur_amount, blur_amount), 0)
+    im2_blur = cv2.GaussianBlur(im2, (blur_amount, blur_amount), 0)
 
     # Avoid divide-by-zero errors.
     im2_blur = im2_blur.astype(int)
@@ -115,8 +119,8 @@ def find(img):
     bbox = [[min(points[:, 0]), min(points[:, 1])], [max(points[:, 0]), min(points[:, 1])],
             [min(points[:, 0]), max(points[:, 1])], [max(points[:, 0]), max(points[:, 1])]]
     '''
-    2   3
     0   1
+    2   3
     '''
 
     return points, bbox, shape
