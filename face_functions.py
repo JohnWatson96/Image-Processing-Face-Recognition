@@ -76,37 +76,38 @@ def correct_colours(im1, im2, landmarks1):
     im2_blur = cv2.medianBlur(im2, blur_amount, 0)
 
     # Avoid divide-by-zero errors.
-    im2_blur = int(im2_blur)
+    im2_blur = im2_blur.astype(int)
     im2_blur = im2_blur + 128*(im2_blur <= 1)
     #Blend images
     result = np.float64(im2) * np.float64(im1_blur) / np.float64(im2_blur)
+    #Remove overflown pixel values
     result = np.uint8(np.clip(result, 0, 255))
 
     return result
-###COPY PASTED###
 
 
-###COPY PASTED###
+
+#Does this need to be a function?
 def apply_mask(img, mask):
-
+    
     masked_img = cv2.bitwise_and(img,img,mask=mask)
 
     return masked_img
-###COPY PASTED###
 
 
-###COPY PASTED###
+
+
 def mask_from_points(size, points,erode_flag=1):
-    radius = 10  # kernel size
-    kernel = np.ones((radius, radius), np.uint8)
-
+    #Create kernel array
+    kernel = np.ones((10, 10), np.uint8)
+    #Create mask of zeroes
     mask = np.zeros(size, np.uint8)
     cv2.fillConvexPoly(mask, cv2.convexHull(points), 255)
     if erode_flag:
         mask = cv2.erode(mask, kernel, iterations=1)
 
     return mask
-###COPY PASTED###
+
 
 
 def find(img):
