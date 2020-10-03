@@ -18,38 +18,49 @@ from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 recognise = False
 swap = False
 store = False
+count = 0
 
 #initialisation
 input_imgs = [cv2.imread("John.jpg"), cv2.imread("Damen.jpg"), cv2.imread("Laura.jpg"), cv2.imread("Andrew.jpg")]
+input_names = ["John", "Damen", "Laura", "Andrew"]
 
 input_pointses = np.zeros((len(input_imgs), 68, 2), dtype=np.uint32)
 input_bboxs = np.zeros((len(input_imgs), 4, 2), dtype=np.uint32)
 input_shapes = []
+input_descriptors = []
 
 for index in range(0, len(input_imgs)):
     input_points, input_bbox, input_shape = face.find(input_imgs[index])
     input_pointses[index] = input_points
     input_bboxs[index] = input_bbox
     input_shapes.append(input_shape)
-
-#input_descriptor = face.recognise(input_img, input_shape)  # WIP
-#input_descriptors = [input_descriptor, input_descriptor]  # WIP
+    input_descriptors.append(face.recognise(input_imgs[index], input_shape))
 
 
-def frame_operation(frame, input_imgs, input_pointses, input_bboxs):
+def frame_operation(frame, input_imgs, input_pointses, input_bboxs, input_names):
 
     global recognise
     global swap
     global store
 
-    input_index = 1  # change this for different people
+    input_index = 0  # change this for different people
     input_img, input_points, input_bbox = input_imgs[input_index], input_pointses[input_index], input_bboxs[input_index]
     if recognise:
-        print("you are")
-        recognise = False
+        _, frame_bbox, frame_shape = face.find(frame)
+        if frame_bbox or frame_shape is not None:
+            frame_descriptor = face.recognise(frame, frame_shape)
+            name_index = face.match(frame_descriptor, input_descriptors)
+            if name_index is not None:
+                name = input_names[name_index]
+                frame = face.draw(frame)
+                cv2.putText(frame, name, tuple(frame_bbox[2]), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 2)
+        else:
+            cv2.putText(frame, "Not Recognised", (0, 480), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 2)
+
     if swap:
         frame_points, frame_bbox, _ = face.find(frame)
         frame = face.swap(frame, frame_points, frame_bbox, input_img, input_points, input_bbox)
+
     if store:
         print("store")
         store = False
@@ -74,7 +85,7 @@ class Thread(QThread):
                 p = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
                 self.changePixmapIn.emit(p)
 
-            frame = frame_operation(frame, input_imgs, input_pointses, input_bboxs)
+            frame = frame_operation(frame, input_imgs, input_pointses, input_bboxs, input_names)
 
             if ret:
                 rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -93,7 +104,7 @@ class AppWindow(QMainWindow):
     # Define Button Presses
     def Button1_pressed(self):
         global recognise
-        recognise = True
+        recognise = ~recognise
 
     def Button2_pressed(self):
         global swap

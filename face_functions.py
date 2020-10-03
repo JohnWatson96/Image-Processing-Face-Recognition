@@ -16,7 +16,12 @@ recogniser = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognitio
 
 
 def match(src_descriptor, descriptors):
-    return np.linalg.norm(descriptors - src_descriptor, axis=1) <= 0.6
+    distances = np.linalg.norm(descriptors - src_descriptor, axis=1)
+    if True in list(distances <= 0.6):
+        return np.argmin(distances)
+    else:
+        return None
+
 
 
 def recognise(img, shape):
@@ -114,8 +119,8 @@ def find(img):
     bbox = [[min(points[:, 0]), min(points[:, 1])], [max(points[:, 0]), min(points[:, 1])],
             [min(points[:, 0]), max(points[:, 1])], [max(points[:, 0]), max(points[:, 1])]]
     '''
-    2   3
     0   1
+    2   3
     '''
 
     return points, bbox, shape
