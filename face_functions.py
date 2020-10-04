@@ -150,7 +150,7 @@ def warp(src_img, src_points, src_bbox, input_img, input_points):
     mouth_indicies = mouth_Delaunay.find_simplex(src_bbox_points)
 
     for index in range(len(src_indicies)):
-        if (lefteye_indicies[index] != -1) or (righteye_indicies[index] != -1) or (mouth_indicies[index] != -1):
+        if (mouth_indicies[index] != -1):  # (lefteye_indicies[index] != -1) or (righteye_indicies[index] != -1) or
             src_indicies[index] = -1
 
     for triangle_index in range(len(src_delaunay.simplices)):  # for each triangle

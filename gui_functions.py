@@ -17,6 +17,7 @@ import glob
 #globals
 recognise = False
 swap = None
+save = False
 
 # initialisation
 input_imgs = []
@@ -42,6 +43,11 @@ def frame_operation(frame):
 
     global recognise
     global swap
+    global save
+
+    if save:
+        cv2.imwrite(file, frame)
+        save = False
 
     if recognise:
         _, frame_bbox, frame_shape = face.find(frame)
@@ -100,9 +106,9 @@ class AppWindow(QMainWindow):
         global file
         text, okPressed = QInputDialog.getText(self, "Get text", "Your name:", QLineEdit.Normal, "")
         if okPressed and text != '':
+            global save
+            save = True
             file = text + ".jpg"
-            print("store", file)
-            # cv2.imwrite(file, frame)
 
     # Define Button Presses
     def Button1_pressed(self):
