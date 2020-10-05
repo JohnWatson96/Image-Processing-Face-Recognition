@@ -26,7 +26,7 @@ for file in glob.glob("*.jpg"):
     input_imgs.append(cv2.imread(file))
     input_names.append(file[:-4])
 
-input_pointses = np.zeros((len(input_imgs), 68, 2), dtype=np.uint32)
+input_pointses = np.zeros((len(input_imgs), 70, 2), dtype=np.uint32)
 input_bboxs = np.zeros((len(input_imgs), 4, 2), dtype=np.uint32)
 input_shapes = []
 input_descriptors = []
