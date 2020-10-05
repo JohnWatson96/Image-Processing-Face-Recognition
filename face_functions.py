@@ -37,15 +37,15 @@ def swap(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
 
     result_img = warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox)
 
-    ###COPY PASTED###
     ## Mask for blending
     h, w = src_img.shape[:2]
     mask = mask_from_points((h, w), src_points)
     mask_src = np.mean(result_img, axis=2) > 0
     mask = np.asarray(mask * mask_src, dtype=np.uint8)
     # colour correction
-    result_img = apply_mask(result_img, mask)
-    dst_face_masked = apply_mask(src_img, mask)
+    #Apply Masks
+    result_img = cv2.bitwise_and(result_img,result_img,mask=mask)
+    dst_face_masked = cv2.bitwise_and(src_img,src_img,mask=mask)
     result_img = correct_colours(dst_face_masked, result_img, src_points)
     ## Shrink the mask
     kernel = np.ones((10, 10), np.uint8)
@@ -54,8 +54,6 @@ def swap(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
     r = cv2.boundingRect(mask)
     center = ((r[0] + int(r[2] / 2), r[1] + int(r[3] / 2)))
     result_img = cv2.seamlessClone(result_img, src_img, mask, center, cv2.NORMAL_CLONE)
-    ###COPY PASTED###
-
     return result_img
 
 
@@ -88,12 +86,6 @@ def correct_colours(im1, im2, landmarks1):
 
 
 #Does this need to be a function?
-def apply_mask(img, mask):
-    
-    masked_img = cv2.bitwise_and(img,img,mask=mask)
-
-    return masked_img
-
 
 
 
