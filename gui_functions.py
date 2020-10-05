@@ -8,23 +8,25 @@ gui defines using PyQt5
 import cv2
 import numpy as np
 import face_functions as face
-from PyQt5.QtWidgets import (QApplication, QMainWindow,
-                             QPushButton, QWidget,
-                             QGridLayout, QLabel)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QWidget, QInputDialog, QLineEdit, QGridLayout,
+                             QLabel)
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
+import glob
 
 #globals
 recognise = False
 swap = None
-store = False
-count = 0
+save = False
 
-#initialisation
-input_imgs = [cv2.imread("John.jpg"), cv2.imread("Damen.jpg"), cv2.imread("Laura.jpg"), cv2.imread("Andrew.jpg")]
-input_names = ["John", "Damen", "Laura", "Andrew"]
+# initialisation
+input_imgs = []
+input_names = []
+for file in glob.glob("*.jpg"):
+    input_imgs.append(cv2.imread(file))
+    input_names.append(file[:-4])
 
-input_pointses = np.zeros((len(input_imgs), 68, 2), dtype=np.uint32)
+input_pointses = np.zeros((len(input_imgs), 70, 2), dtype=np.uint32)
 input_bboxs = np.zeros((len(input_imgs), 4, 2), dtype=np.uint32)
 input_shapes = []
 input_descriptors = []
@@ -37,11 +39,15 @@ for index in range(0, len(input_imgs)):
     input_descriptors.append(face.recognise(input_imgs[index], input_shape))
 
 
-def frame_operation(frame, input_imgs, input_pointses, input_bboxs, input_names):
+def frame_operation(frame):
 
     global recognise
     global swap
-    global store
+    global save
+
+    if save:
+        cv2.imwrite(file, frame)
+        save = False
 
     if recognise:
         _, frame_bbox, frame_shape = face.find(frame)
@@ -57,11 +63,8 @@ def frame_operation(frame, input_imgs, input_pointses, input_bboxs, input_names)
 
     if swap is not None:
         frame_points, frame_bbox, _ = face.find(frame)
-        frame = face.swap(frame, frame_points, frame_bbox, input_imgs[swap], input_pointses[swap], input_bboxs[swap])
+        frame = face.swap(frame, frame_points, frame_bbox, input_imgs[swap], input_pointses[swap])
 
-    if store:
-        print("store")
-        store = False
     return frame
 
 
@@ -83,7 +86,7 @@ class Thread(QThread):
                 p = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
                 self.changePixmapIn.emit(p)
 
-            frame = frame_operation(frame, input_imgs, input_pointses, input_bboxs, input_names)
+            frame = frame_operation(frame)
 
             if ret:
                 rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -98,6 +101,14 @@ class Thread(QThread):
 
 # GUI
 class AppWindow(QMainWindow):
+
+    def getText(self):
+        global file
+        text, okPressed = QInputDialog.getText(self, "Get text", "Your name:", QLineEdit.Normal, "")
+        if okPressed and text != '':
+            global save
+            save = True
+            file = text + ".jpg"
 
     # Define Button Presses
     def Button1_pressed(self):
@@ -114,8 +125,7 @@ class AppWindow(QMainWindow):
             swap = None
 
     def Button3_pressed(self):
-        global store
-        store = True
+        self.getText()
 
         # Initilize main window
 
