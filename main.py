@@ -17,6 +17,8 @@ window = gui.AppWindow()
 window.show()
 app.exec_()
 
+gui.closecam()
+
 # PROJECT SCOPE
 # Open webcam and UI, Button for learn and swap face to
 # mode to do emotions

@@ -18,6 +18,7 @@ import glob
 recognise = False
 swap = None
 save = False
+cam = 0
 
 # initialisation
 input_imgs = []
@@ -37,6 +38,12 @@ for index in range(0, len(input_imgs)):
     input_bboxs[index] = input_bbox
     input_shapes.append(input_shape)
     input_descriptors.append(face.recognise(input_imgs[index], input_shape))
+
+
+def closecam():
+    global cam
+    cam.release()
+    return
 
 
 def frame_operation(frame):
@@ -73,6 +80,7 @@ class Thread(QThread):
     changePixmapOut = pyqtSignal(QImage, name='Out')
 
     def run(self):
+        global cam
         cam = cv2.VideoCapture(0)
         while True:
 
@@ -123,7 +131,10 @@ class AppWindow(QMainWindow):
             swap = swap + 1
         else:
             swap = None
-
+        if swap is not None:
+            self.Name.setText(input_names[swap])
+        else:
+            self.Name.setText("")
     def Button3_pressed(self):
         self.getText()
 
@@ -140,6 +151,8 @@ class AppWindow(QMainWindow):
         self.Button1 = QPushButton()
         self.Button2 = QPushButton()
         self.Button3 = QPushButton()
+        self.Name = QLabel()
+
         # Label Buttons
         self.Button1.setText('Who am I?')
         self.Button2.setText('Swap my face!')
@@ -149,6 +162,7 @@ class AppWindow(QMainWindow):
         self.layout.addWidget(self.Button1, 3, 3)
         self.layout.addWidget(self.Button2, 4, 3)
         self.layout.addWidget(self.Button3, 5, 3)
+        self.layout.addWidget(self.Name, 3, 5)
 
         # Connect buttons
         self.Button1.clicked.connect(self.Button1_pressed)

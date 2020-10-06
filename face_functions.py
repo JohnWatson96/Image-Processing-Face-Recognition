@@ -40,20 +40,29 @@ def swap(src_img, src_points, src_bbox, input_img, input_points):
     ## Mask for blending
     h, w = src_img.shape[:2]
     mask = mask_from_points((h, w), src_points)
+    #cv2.imshow("mask", mask)
     mask_src = np.mean(result_img, axis=2) > 0
     mask = np.asarray(mask * mask_src, dtype=np.uint8)
+    #cv2.imshow("mask1", mask)
+
     # colour correction
     #Apply Masks
-    result_img = cv2.bitwise_and(result_img,result_img,mask=mask)
-    dst_face_masked = cv2.bitwise_and(src_img,src_img,mask=mask)
+    result_img = cv2.bitwise_and(result_img, result_img, mask=mask)
+    #cv2.imshow("result_img", result_img)
+    dst_face_masked = cv2.bitwise_and(src_img, src_img, mask=mask)
+    #cv2.imshow("dst_face_masked", dst_face_masked)
     result_img = correct_colours(dst_face_masked, result_img, src_points)
+    #cv2.imshow("result_img2", result_img)
     ## Shrink the mask
     kernel = np.ones((10, 10), np.uint8)
     mask = cv2.erode(mask, kernel, iterations=1)
+    #cv2.imshow("mask3", mask)
     ##Poisson Blending
     r = cv2.boundingRect(mask)
     center = ((r[0] + int(r[2] / 2), r[1] + int(r[3] / 2)))
     result_img = cv2.seamlessClone(result_img, src_img, mask, center, cv2.NORMAL_CLONE)
+    #cv2.imshow("result_img3", result_img)
+    #cv2.waitKey(0)
     return result_img
 
 
@@ -82,18 +91,14 @@ def correct_colours(im1, im2, landmarks1):
     return result
 
 
-
-def mask_from_points(size, points,erode_flag=1):
+def mask_from_points(size, points):
     #Create kernel array
     kernel = np.ones((10, 10), np.uint8)
     #Create mask of zeroes
     mask = np.zeros(size, np.uint8)
     cv2.fillConvexPoly(mask, cv2.convexHull(points), 255)
-    if erode_flag:
-        mask = cv2.erode(mask, kernel, iterations=1)
-
+    mask = cv2.erode(mask, kernel, iterations=1)
     return mask
-
 
 
 def find(img):
@@ -133,8 +138,8 @@ def find_pupils(img, points):
         eye = cv2.erode(eye, (3, 3), iterations=3)
         ret, _ = cv2.threshold(eye, 0, 255, cv2.THRESH_OTSU)
         _, eye = cv2.threshold(eye, ret*0.7, 255, cv2.THRESH_BINARY_INV)
-        cv2.imshow("eye", eye)
-        cv2.waitKey(10)
+        # cv2.imshow("eye", eye)
+        # cv2.waitKey(10)
         center = center_of_mass(eye)
         if np.isnan(center[1]):
             points = np.vstack((points, [int((bbox[0][0] + bbox[3][0]) / 2), int((bbox[0][1] + bbox[3][1]) / 2)]))
@@ -206,8 +211,8 @@ def warp(src_img, src_points, src_bbox, input_img, input_points):
 
         x, y = triangle_points.T  # transpose [[x1,y1], [x2,y2], ...] to [x1, x2, ...], [y1, y2, ...]
         result_img[y, x] = bilinear_interpolate(input_img, out_points)  # interpolate between input and source
-        # cv2.imshow("result_img", result_img)
-        # cv2.waitKey(10)  # these show the process for each section
+        #cv2.imshow("result_img", result_img)
+        #cv2.waitKey(10)  # these show the process for each section
 
     return result_img
 
