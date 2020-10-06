@@ -29,13 +29,13 @@ def recognise(img, shape):
     return descriptor
 
 
-def swap(src_img, src_points, src_bbox, input_img, input_points, input_bbox):
+def swap(src_img, src_points, src_bbox, input_img, input_points):
     src_points, src_bbox, _ = find(src_img)
     if src_points is None or src_bbox is None:  # no face detected
         print("No face to swap")
         return src_img
 
-    result_img = warp(src_img, src_points, src_bbox, input_img, input_points, input_bbox)
+    result_img = warp(src_img, src_points, src_bbox, input_img, input_points)
 
     ## Mask for blending
     h, w = src_img.shape[:2]
@@ -62,9 +62,7 @@ def correct_colours(im1, im2, landmarks1):
     LEFT_EYE_POINTS = list(range(42, 48))
     RIGHT_EYE_POINTS = list(range(36, 42))
     #determine kernal size
-    blur_amount = COLOUR_CORRECT_BLUR_FRAC * np.linalg.norm(
-                              np.mean(landmarks1[LEFT_EYE_POINTS], axis=0) -
-                              np.mean(landmarks1[RIGHT_EYE_POINTS], axis=0))
+    blur_amount = COLOUR_CORRECT_BLUR_FRAC * np.linalg.norm(np.mean(landmarks1[LEFT_EYE_POINTS], axis=0) - np.mean(landmarks1[RIGHT_EYE_POINTS], axis=0))
     blur_amount = int(blur_amount)
     #Ensure kernal size value is not even
     if blur_amount % 2 == 0:
