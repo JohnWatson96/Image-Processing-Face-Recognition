@@ -1,17 +1,16 @@
 # Image-Processing-Face-Recognition
 
-Recognises faces and then applies an image over them
+Creates an application that allows recognition, face swapping and saving of faces.
 
-## Helpful Resources:
+## Installation:
 
-facial recognition api
-https://github.com/ageitgey/face_recognition
+This program requires installation of Dlib. The Nvidia CUDA 11.0 and cuDNN 8.0 packages can be used for GPU acceleration AMD graphics cards are not supported. These packages must be installed before Dlib. The program also assumes model data can be accessed at:
+dlib.shape_predictor("../dlib-models/shape_predictor_68_face_landmarks.dat")
+recogniser = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognition_resnet_model_v1.dat")
+In face_functions.py
 
-
-https://docs.opencv.org/2.4/modules/contrib/doc/facerec/facerec_tutorial.html
-
-https://www.pyimagesearch.com/2018/06/18/face-recognition-with-opencv-python-and-deep-learning/
-
-https://realpython.com/face-recognition-with-python/
-
-https://www.pyimagesearch.com/2018/09/24/opencv-face-recognition/
+Models: https://github.com/davisking/dlib-models 
+Dlib: pip install dlib
+CUDA: https://developer.nvidia.com/cuda-downloads
+CuDNN: https://developer.nvidia.com/cudnn
+CuDNN Installation Guide: https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html
