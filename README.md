@@ -12,7 +12,11 @@ recogniser = dlib.face_recognition_model_v1("../dlib-models/dlib_face_recognitio
 In face_functions.py
 
 Models: https://github.com/davisking/dlib-models 
+
 Dlib: pip install dlib
+
 CUDA: https://developer.nvidia.com/cuda-downloads
+
 CuDNN: https://developer.nvidia.com/cudnn
+
 CuDNN Installation Guide: https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html
