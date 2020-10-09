@@ -9,7 +9,6 @@ import cv2
 import dlib
 import numpy as np
 from scipy.spatial import Delaunay
-from scipy.ndimage import center_of_mass
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("../dlib-models/shape_predictor_68_face_landmarks.dat")
@@ -30,12 +29,23 @@ def recognise(img, shape):
 
 
 def swap(src_img, src_points, src_bbox, input_img, input_points):
-    src_points, src_bbox, _ = find(src_img)
     if src_points is None or src_bbox is None:  # no face detected
         print("No face to swap")
         return src_img
 
     result_img = warp(src_img, src_points, src_bbox, input_img, input_points)
+
+    """src_img = draw(src_img)
+    for point in input_points:
+        cv2.circle(input_img, (point[0], point[1]), 2, (0, 255, 0), -1)
+    bbox = find(input_img)[1]
+    cv2.line(input_img, tuple(bbox[0]), tuple(bbox[1]), (0, 0, 255), 2)
+    cv2.line(input_img, tuple(bbox[0]), tuple(bbox[2]), (0, 0, 255), 2)
+    cv2.line(input_img, tuple(bbox[2]), tuple(bbox[3]), (0, 0, 255), 2)
+    cv2.line(input_img, tuple(bbox[1]), tuple(bbox[3]), (0, 0, 255), 2)
+    cv2.imshow("John", src_img)
+    cv2.imshow("Andrew", input_img)
+    cv2.waitKey(0)  # Demonstration"""
 
     ## Mask for blending
     h, w = src_img.shape[:2]
@@ -132,20 +142,31 @@ def find_pupils(img, points):
 
     for bbox in bboxs:
         eye = img[bbox[0][1]:bbox[3][1], bbox[0][0]:bbox[3][0]]  # crop image to each eye
+        #cv2.imshow("eye", eye)
         eye = cv2.cvtColor(eye, cv2.COLOR_BGR2GRAY)  # convert to single channel
+        #cv2.imshow("eye1", eye)
         #eye = cv2.inRange(eye, (0, 0, 0), (50, 50, 50))
         eye = cv2.GaussianBlur(eye, (3, 3), 0)
+        #cv2.imshow("eye2", eye)
         eye = cv2.erode(eye, (3, 3), iterations=3)
+        #cv2.imshow("eye3", eye)
         ret, _ = cv2.threshold(eye, 0, 255, cv2.THRESH_OTSU)
         _, eye = cv2.threshold(eye, ret*0.7, 255, cv2.THRESH_BINARY_INV)
-        # cv2.imshow("eye", eye)
-        # cv2.waitKey(10)
-        center = center_of_mass(eye)
-        if np.isnan(center[1]):
+        #cv2.imshow("eye4", eye)
+        #cv2.waitKey(0)
+
+        try:
+            m = cv2.moments(eye)
+            x = int(m["m10"] / m["m00"])
+            y = int(m["m01"] / m["m00"])
+            eye = cv2.cvtColor(eye, cv2.COLOR_GRAY2BGR)
+            cv2.circle(eye, (x, y), 1, (0, 0, 255), -1)
+            #cv2.imshow("eye", eye)
+            #cv2.waitKey(0)
+            points = np.vstack((points, [bbox[0][0] + x, bbox[0][1] + y]))  # absolute coordinates
+        except (IndexError, ZeroDivisionError):
             points = np.vstack((points, [int((bbox[0][0] + bbox[3][0]) / 2), int((bbox[0][1] + bbox[3][1]) / 2)]))
-        else:
-            x = int(center[1])
-            points = np.vstack((points, [bbox[0][0] + x, int((bbox[0][1] + bbox[3][1]) / 2)]))
+
         """contours, _ = cv2.findContours(eye, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         contours = sorted(contours, key=cv2.contourArea)
         try:
@@ -156,17 +177,23 @@ def find_pupils(img, points):
             cv2.circle(eye, (x, y), 1, (0, 0, 255), -1)
             cv2.drawContours(eye, contours[-2], -1, (255, 0, 0), 1)
             cv2.imshow("eye", eye)
+            cv2.waitKey(0)
             points = np.vstack((points, [bbox[0][0] + x, bbox[0][1] + y]))  # absolute coordinates
         except (IndexError, ZeroDivisionError):
             points = np.vstack((points, [int((bbox[0][0] + bbox[3][0])/2), int((bbox[0][1] + bbox[3][1])/2)]))"""
 
         """iris = cv2.HoughCircles(eye, cv2.HOUGH_GRADIENT, 1, 100,
                                      param1=20,
-                                     param2=5,
+                                     param2=10,
                                      minRadius=5,
-                                     maxRadius=50)
+                                     maxRadius=20)
         if iris is not None:
             iris = np.uint16(np.around(iris))
+            eye = cv2.cvtColor(eye, cv2.COLOR_GRAY2BGR)
+            cv2.circle(eye, (iris[0][0][0], iris[0][0][1]), iris[0][0][2], (0, 255, 0), 1)
+            cv2.circle(eye, (iris[0][0][0], iris[0][0][1]), 1, (0, 0, 255), -1)
+            cv2.imshow("eye", eye)
+            cv2.waitKey(0)
             points = np.vstack((points, [bbox[0][0] + iris[0][0][0], bbox[0][1] + iris[0][0][1]])) #add eye centerpoint
         else:
             points = np.vstack((points, [int((bbox[0][0] + bbox[3][0])/2), int((bbox[0][1] + bbox[3][1])/2)]))
@@ -177,6 +204,7 @@ def find_pupils(img, points):
 
 def warp(src_img, src_points, src_bbox, input_img, input_points):
     result_img = np.zeros(src_img.shape, dtype=src_img.dtype)
+    #result_img = src_img.copy()
 
     src_delaunay = Delaunay(src_points)  # create Delaunay triangles to warp to
 
@@ -203,16 +231,19 @@ def warp(src_img, src_points, src_bbox, input_img, input_points):
         if (mouth_indicies[index] != -1):  # (lefteye_indicies[index] != -1) or (righteye_indicies[index] != -1) or
             src_indicies[index] = -1
 
+
     for triangle_index in range(len(src_delaunay.simplices)):  # for each triangle
         triangle_points = src_bbox_points[src_indicies == triangle_index]  # for the points in the triangle
         num_points = len(triangle_points)  # get the number of points
         out_points = np.dot(triangle_affines[triangle_index], np.vstack((triangle_points.T, np.ones(num_points))))
-        # perform affine transform T = M.[x,y,1]^T to create triangles of source in the input
+        # perform affine transform T = M.[x,y,1]^T to create triangle of input in the source
 
-        x, y = triangle_points.T  # transpose [[x1,y1], [x2,y2], ...] to [x1, x2, ...], [y1, y2, ...]
-        result_img[y, x] = bilinear_interpolate(input_img, out_points)  # interpolate between input and source
+        x, y = triangle_points.T  # transpose [[x1,y1], [x2,y2], ...] to [x1, x2, ...], [y1, y2, ...] src_triangle coord
+        warp_img = cv2.warpAffine(input_img, triangle_affines[triangle_index], (input_img.shape[1], input_img.shape[0]))
+        #cv2.imshow("warp_img", warp_img)
+        result_img[y, x] = warp_img[y, x]
         #cv2.imshow("result_img", result_img)
-        #cv2.waitKey(10)  # these show the process for each section
+        #cv2.waitKey(20)  # these show the process for each section
 
     return result_img
 
@@ -221,25 +252,9 @@ def get_affine_transform(input_simplices, input_points, src_points):
     for triangle in input_simplices:  # for each triangle
         src_triangle = np.float32(src_points[triangle])
         input_triangle = np.float32(input_points[triangle])
-        mat = cv2.getAffineTransform(src_triangle, input_triangle)  # get the transform matrix
+        mat = cv2.getAffineTransform(input_triangle, src_triangle)  # get the transform matrix
+        #mat = cv2.getAffineTransform(src_triangle, input_triangle)  # get the transform matrix
         yield mat
-
-
-def bilinear_interpolate(img, points):
-    int_points = np.int32(points)
-    x0, y0 = int_points
-    dx, dy = points - int_points
-
-    q11 = img[y0, x0]  # 4 Neighbour pixels
-    q21 = img[y0, x0 + 1]
-    q12 = img[y0 + 1, x0]
-    q22 = img[y0 + 1, x0 + 1]
-
-    bottom = q21.T * dx + q11.T * (1 - dx)
-    top = q22.T * dx + q12.T * (1 - dx)
-    inter_pixel = top * dy + bottom * (1 - dy)
-
-    return inter_pixel.T
 
 
 def draw(img):  # draws facial points, Delaunay triangles and bounding box

@@ -3,9 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="ce382817-a0f3-4387-b473-19fcf5f6a0b0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kevin.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Obama.jpg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/face_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/face_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -148,6 +149,13 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/face_functions.py</url>
+          <line>30</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">

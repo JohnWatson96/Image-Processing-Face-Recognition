@@ -32,6 +32,8 @@ input_bboxs = np.zeros((len(input_imgs), 4, 2), dtype=np.uint32)
 input_shapes = []
 input_descriptors = []
 
+#input_points, input_bbox, input_shape = face.find(input_imgs[3])  # testing
+
 for index in range(0, len(input_imgs)):
     input_points, input_bbox, input_shape = face.find(input_imgs[index])
     input_pointses[index] = input_points
@@ -39,6 +41,7 @@ for index in range(0, len(input_imgs)):
     input_shapes.append(input_shape)
     input_descriptors.append(face.recognise(input_imgs[index], input_shape))
 
+#cv2.imshow("swap", face.swap(input_imgs[3], input_pointses[3], input_bboxs[3], input_imgs[0], input_pointses[0]))
 
 def closecam():
     global cam
@@ -65,8 +68,11 @@ def frame_operation(frame):
                 name = input_names[name_index]
                 frame = face.draw(frame)
                 cv2.putText(frame, name, tuple(frame_bbox[2]), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 2)
+            else:
+                frame = face.draw(frame)
+                cv2.putText(frame, "Not Recognised", (0, 480), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 2)
         else:
-            cv2.putText(frame, "Not Recognised", (0, 480), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 2)
+            cv2.putText(frame, "No Face Detected", (0, 480), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 2)
 
     if swap is not None:
         frame_points, frame_bbox, _ = face.find(frame)
